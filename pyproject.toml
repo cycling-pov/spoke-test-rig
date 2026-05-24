@@ -1,0 +1,15 @@
+[project]
+name = "spoke-test-rig"
+version = "0.1.0"
+description = "A test rig for the esp-pov project."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = ["cadquery>=2.7.0"]
+
+[project.scripts]
+export = "spoke_test_rig.export:main"
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
