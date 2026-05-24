@@ -51,6 +51,14 @@ class HubArmParams:
     dovetail_inner_width: float = 14.0
     dovetail_socket_entry_offset: float = 0.6
 
+    # Lock pin geometry for securing arm-to-hub dovetail joints.
+    pin_hole_from_entry: float = 6.0
+    pin_hole_top_diameter: float = 3.6
+    pin_hole_bottom_diameter: float = 3.3
+    pin_top_diameter: float = 3.35
+    pin_bottom_diameter: float = 3.1
+    pin_length: float = 17.0
+
     @property
     def recess_length(self) -> float:
         return self.breadboard_length + (2.0 * self.recess_xy_clearance)
@@ -79,6 +87,20 @@ class HubArmParams:
     @property
     def lash_hole_radius(self) -> float:
         return (self.hub_outer_diameter / 2.0) - self.lash_hole_radial_inset
+
+    @property
+    def arm_pin_hole_x(self) -> float:
+        # Arm local X location, measured inward from the dovetail entry shoulder.
+        return -self.pin_hole_from_entry
+
+    @property
+    def hub_pin_hole_x(self) -> float:
+        # World-space X location of the dovetail lock pin on +X side.
+        return (
+            (self.hub_outer_diameter / 2.0)
+            + self.dovetail_socket_entry_offset
+            - self.pin_hole_from_entry
+        )
 
 
 def validate_params(params: HubArmParams) -> None:
@@ -110,6 +132,31 @@ def validate_params(params: HubArmParams) -> None:
 
     if params.arm_length <= params.dovetail_length:
         raise ValueError("Arm length must be longer than dovetail length.")
+
+    if not (0.0 < params.pin_hole_from_entry < params.dovetail_length):
+        raise ValueError(
+            "Pin-hole location must be within the dovetail engagement length."
+        )
+
+    if params.pin_hole_top_diameter <= params.pin_hole_bottom_diameter:
+        raise ValueError("Pin-hole top diameter must exceed bottom diameter.")
+
+    if params.pin_bottom_diameter <= 0.0 or params.pin_top_diameter <= 0.0:
+        raise ValueError("Pin diameters must be greater than 0.")
+
+    if params.pin_top_diameter <= params.pin_bottom_diameter:
+        raise ValueError("Pin top diameter must exceed pin bottom diameter.")
+
+    if params.pin_length <= params.hub_thickness:
+        raise ValueError("Pin length should exceed hub thickness for retention.")
+
+    if params.pin_top_diameter >= params.pin_hole_top_diameter:
+        raise ValueError("Pin top diameter must be smaller than hole top diameter.")
+
+    if params.pin_bottom_diameter >= params.pin_hole_bottom_diameter:
+        raise ValueError(
+            "Pin bottom diameter must be smaller than hole bottom diameter."
+        )
 
     min_hub = math.hypot(params.recess_length, params.recess_width) + (
         2.0 * params.hub_wall_margin

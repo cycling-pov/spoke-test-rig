@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import cadquery as cq
 
+from spoke_test_rig.cad.pin import tapered_pin_hole_cutter
 from spoke_test_rig.cad.params import HubArmParams, validate_params
 
 
@@ -48,4 +49,7 @@ def build_arm(params: HubArmParams) -> cq.Workplane:
         .translate((-0.5, 0.0, 0.0))
     )
 
-    return body.union(dovetail).union(stop)
+    arm = body.union(dovetail).union(stop)
+
+    hole_cutter = tapered_pin_hole_cutter(params, params.arm_thickness + 2.0)
+    return arm.cut(hole_cutter.translate((params.arm_pin_hole_x, 0.0, 0.0)))

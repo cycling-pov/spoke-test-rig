@@ -7,6 +7,7 @@ import cadquery as cq
 from spoke_test_rig.cad.arm import build_arm
 from spoke_test_rig.cad.assembly import build_assembly
 from spoke_test_rig.cad.hub import build_hub
+from spoke_test_rig.cad.pin import build_pin
 from spoke_test_rig.cad.params import HubArmParams, QUARTER_INCH_MM, validate_params
 
 
@@ -25,16 +26,20 @@ def run() -> None:
 
     hub = build_hub(params)
     arm = build_arm(params)
+    pin = build_pin(params)
     assembly = build_assembly(params)
 
     cq.exporters.export(hub, str(export_dir / "hub.step"))
     cq.exporters.export(hub, str(export_dir / "hub.stl"))
     cq.exporters.export(arm, str(export_dir / "arm.step"))
     cq.exporters.export(arm, str(export_dir / "arm.stl"))
+    cq.exporters.export(pin, str(export_dir / "pin.step"))
+    cq.exporters.export(pin, str(export_dir / "pin.stl"))
     assembly.save(str(export_dir / "assembly.step"))
 
     arm_x, arm_y, arm_z = _bbox_lengths(arm)
     hub_x, hub_y, hub_z = _bbox_lengths(hub)
+    pin_x, _, pin_z = _bbox_lengths(pin)
 
     checks = {
         "arm_length_mm": (arm_x, params.arm_length),
@@ -46,6 +51,8 @@ def run() -> None:
             hub_z,
             params.hub_thickness + params.drive_reinforcement_boss_height,
         ),
+        "pin_top_diameter_mm": (pin_x, params.pin_top_diameter),
+        "pin_length_mm": (pin_z, params.pin_length),
         "drive_hex_af_mm": (params.drive_hex_af, QUARTER_INCH_MM),
     }
 
@@ -65,7 +72,9 @@ def run() -> None:
         f"- Drive reinforcement boss (D x H): {params.drive_reinforcement_boss_diameter:.2f} x {params.drive_reinforcement_boss_height:.2f} mm",
         f"- Lash holes: {params.lash_hole_count}x {params.lash_hole_diameter:.2f} mm at radius {params.lash_hole_radius:.2f} mm",
         f"- Lash hole rotation: {params.lash_hole_rotation_deg:.2f} deg",
-        f"- Dovetail placement: sockets centered at 0 and 180 degrees",
+        "- Dovetail placement: sockets centered at 0 and 180 degrees",
+        f"- Lock pin hole diameters (top/bottom): {params.pin_hole_top_diameter:.2f} / {params.pin_hole_bottom_diameter:.2f} mm",
+        f"- Lock pin diameters (top/bottom): {params.pin_top_diameter:.2f} / {params.pin_bottom_diameter:.2f} mm",
     ]
 
     report_path = export_dir / "validation_report.txt"

@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import cadquery as cq
 
+from spoke_test_rig.cad.pin import tapered_pin_hole_cutter
 from spoke_test_rig.cad.params import HubArmParams, validate_params
 
 
@@ -122,4 +123,11 @@ def build_hub(params: HubArmParams) -> cq.Workplane:
     socket = _female_dovetail_cutter(params).translate((radius, 0.0, 0.0))
     opposite_socket = socket.mirror("YZ")
 
-    return hub.cut(socket).cut(opposite_socket)
+    hub = hub.cut(socket).cut(opposite_socket)
+
+    # Tapered lock-pin holes through each arm/hub dovetail interface.
+    lock_hole = tapered_pin_hole_cutter(params, params.hub_thickness + 2.0)
+    hub = hub.cut(lock_hole.translate((params.hub_pin_hole_x, 0.0, 0.0)))
+    hub = hub.cut(lock_hole.translate((-params.hub_pin_hole_x, 0.0, 0.0)))
+
+    return hub
