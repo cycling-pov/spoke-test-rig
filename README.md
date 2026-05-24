@@ -26,6 +26,22 @@ uv run export
 
 Outputs are written to `exports/`
 
+## Visualize models in CQ-editor
+
+CQ-editor is installed as a project dependency. Launch the viewer script with:
+
+```bash
+uv run view
+```
+
+Optional model filter:
+
+```bash
+uv run view --model hub
+uv run view --model arm
+uv run view --model assembly
+```
+
 ## Tune dimensions
 
 Edit `src/spoke_test_rig/cad/params.py` to adjust clearances, hub size, arm dimensions, or dovetail fit.
