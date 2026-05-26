@@ -15,7 +15,7 @@ Parametric CadQuery models for a rotating hub and detachable LED arms.
 - Breadboard nominal: 83.5 x 55.5 x 8.5 mm
 - Recess fit: slip-fit (+0.5 mm XY, +0.4 mm depth)
 - Hub thickness: 25 mm
-- Arms: 228.6 mm long (9 in), 16 x 4 mm section
+- Arms: 228.6 mm long (9 in), 12 x 4 mm section
 - Dovetail: radial slide-in with M3-class through-bolt retention
 - Material tuning: PLA FDM
 

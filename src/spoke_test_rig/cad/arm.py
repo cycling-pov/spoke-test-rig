@@ -7,11 +7,18 @@ from spoke_test_rig.cad.params import HubArmParams, validate_params
 
 
 def _male_dovetail(params: HubArmParams) -> cq.Workplane:
+    # Keep the arm-side shoulder no wider than the hub socket mouth.
+    shoulder_w = min(
+        params.dovetail_inner_width,
+        params.dovetail_entry_width,
+        params.arm_width,
+    )
+
     profile = [
         (-params.dovetail_length, -params.dovetail_entry_width / 2.0),
         (-params.dovetail_length, params.dovetail_entry_width / 2.0),
-        (0.0, params.dovetail_inner_width / 2.0),
-        (0.0, -params.dovetail_inner_width / 2.0),
+        (0.0, shoulder_w / 2.0),
+        (0.0, -shoulder_w / 2.0),
     ]
 
     return (
@@ -27,6 +34,11 @@ def build_arm(params: HubArmParams) -> cq.Workplane:
     validate_params(params)
 
     arm_body_length = params.arm_length - params.dovetail_length
+    shoulder_w = min(
+        params.dovetail_inner_width,
+        params.dovetail_entry_width,
+        params.arm_width,
+    )
 
     body = cq.Workplane("XY").box(
         arm_body_length,
@@ -42,7 +54,7 @@ def build_arm(params: HubArmParams) -> cq.Workplane:
         cq.Workplane("XY")
         .box(
             1.0,
-            params.dovetail_inner_width,
+            shoulder_w,
             params.arm_thickness,
             centered=(False, True, True),
         )

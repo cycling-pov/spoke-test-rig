@@ -43,7 +43,7 @@ class HubArmParams:
 
     # Arm geometry.
     arm_length: float = 9.0 * INCH_TO_MM
-    arm_width: float = 16.0
+    arm_width: float = 12.0
     arm_thickness: float = 4.0
 
     # Dovetail geometry.
