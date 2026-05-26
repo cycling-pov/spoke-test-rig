@@ -8,15 +8,15 @@ Parametric CadQuery models for a rotating hub and detachable LED arms.
 - Bottom 1/4-inch hex drive socket for a rotating shank.
 - Two radial dovetail receivers at 180 degrees in the hub.
 - Separate 9-inch arms with matching male dovetail mounts.
-- Tapered lock-pin holes across each arm-hub dovetail plus matching pin model.
+- Through-bolt lock retention at each arm-hub dovetail with top head counterbore and bottom hex-nut trap.
 
 ## Key defaults
 
 - Breadboard nominal: 83.5 x 55.5 x 8.5 mm
 - Recess fit: slip-fit (+0.5 mm XY, +0.4 mm depth)
-- Hub thickness: 15 mm
+- Hub thickness: 25 mm
 - Arms: 228.6 mm long (9 in), 16 x 4 mm section
-- Dovetail: radial slide-in, friction fit pin for fixture
+- Dovetail: radial slide-in with M3-class through-bolt retention
 - Material tuning: PLA FDM
 
 ## Export models

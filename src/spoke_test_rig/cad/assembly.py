@@ -4,14 +4,12 @@ import cadquery as cq
 
 from spoke_test_rig.cad.arm import build_arm
 from spoke_test_rig.cad.hub import build_hub
-from spoke_test_rig.cad.pin import build_pin
 from spoke_test_rig.cad.params import HubArmParams
 
 
 def build_assembly(params: HubArmParams) -> cq.Assembly:
     hub = build_hub(params)
     arm = build_arm(params)
-    pin = build_pin(params)
 
     radius = params.hub_outer_diameter / 2.0
     arm_insert_origin = radius + params.dovetail_socket_entry_offset
@@ -26,8 +24,5 @@ def build_assembly(params: HubArmParams) -> cq.Assembly:
 
     assembly.add(arm_a, name="arm_a")
     assembly.add(arm_b, name="arm_b")
-
-    assembly.add(pin.translate((params.hub_pin_hole_x, 0.0, 0.0)), name="pin_a")
-    assembly.add(pin.translate((-params.hub_pin_hole_x, 0.0, 0.0)), name="pin_b")
 
     return assembly

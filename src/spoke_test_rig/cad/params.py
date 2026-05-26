@@ -18,11 +18,12 @@ class HubArmParams:
     # Assembly-fit clearances tuned for PLA/PETG FDM.
     recess_xy_clearance: float = 0.5
     recess_z_clearance: float = 0.4
+    recess_floor_thickness: float = 3.0
     dovetail_xy_clearance: float = 0.25
     dovetail_z_clearance: float = 0.2
 
     # Hub geometry.
-    hub_thickness: float = 15.0
+    hub_thickness: float = 25.0
     hub_outer_diameter: float = 130.0
     hub_wall_margin: float = 10.0
 
@@ -51,13 +52,13 @@ class HubArmParams:
     dovetail_inner_width: float = 14.0
     dovetail_socket_entry_offset: float = 0.6
 
-    # Lock pin geometry for securing arm-to-hub dovetail joints.
-    pin_hole_from_entry: float = 6.0
-    pin_hole_top_diameter: float = 3.6
-    pin_hole_bottom_diameter: float = 3.3
-    pin_top_diameter: float = 3.35
-    pin_bottom_diameter: float = 3.1
-    pin_length: float = 17.0
+    # Metal bolt lock geometry for securing arm-to-hub dovetail joints.
+    lock_bolt_from_entry: float = 6.0
+    lock_bolt_clearance_diameter: float = 3.4
+    lock_head_diameter: float = 6.4
+    lock_head_depth: float = 2.8
+    lock_nut_flat: float = 5.8
+    lock_nut_thickness: float = 2.8
 
     @property
     def recess_length(self) -> float:
@@ -89,23 +90,41 @@ class HubArmParams:
         return (self.hub_outer_diameter / 2.0) - self.lash_hole_radial_inset
 
     @property
-    def arm_pin_hole_x(self) -> float:
+    def arm_lock_bolt_x(self) -> float:
         # Arm local X location, measured inward from the dovetail entry shoulder.
-        return -self.pin_hole_from_entry
+        return -self.lock_bolt_from_entry
 
     @property
-    def hub_pin_hole_x(self) -> float:
-        # World-space X location of the dovetail lock pin on +X side.
+    def hub_lock_bolt_x(self) -> float:
+        # World-space X location of the dovetail lock bolt on +X side.
         return (
             (self.hub_outer_diameter / 2.0)
             + self.dovetail_socket_entry_offset
-            - self.pin_hole_from_entry
+            - self.lock_bolt_from_entry
         )
+
+    @property
+    def lock_nut_vertex_diameter(self) -> float:
+        # CadQuery polygon() uses vertex-to-vertex diameter for regular polygons.
+        return (2.0 * self.lock_nut_flat) / math.sqrt(3.0)
 
 
 def validate_params(params: HubArmParams) -> None:
     if params.recess_depth >= params.hub_thickness:
         raise ValueError("Breadboard recess depth must be less than hub thickness.")
+
+    min_hub_thickness = (
+        params.recess_depth
+        + params.recess_floor_thickness
+        + params.drive_reinforcement_boss_height
+        + params.drive_leadin_depth
+        + params.drive_socket_depth
+    )
+    if params.hub_thickness < min_hub_thickness:
+        raise ValueError(
+            "Hub thickness must leave the requested solid floor between the "
+            "breadboard recess and the hex drive socket."
+        )
 
     if params.drive_socket_depth >= params.hub_thickness:
         raise ValueError("Drive socket depth must be less than hub thickness.")
@@ -133,29 +152,29 @@ def validate_params(params: HubArmParams) -> None:
     if params.arm_length <= params.dovetail_length:
         raise ValueError("Arm length must be longer than dovetail length.")
 
-    if not (0.0 < params.pin_hole_from_entry < params.dovetail_length):
+    if not (0.0 < params.lock_bolt_from_entry < params.dovetail_length):
         raise ValueError(
-            "Pin-hole location must be within the dovetail engagement length."
+            "Lock-bolt location must be within the dovetail engagement length."
         )
 
-    if params.pin_hole_top_diameter <= params.pin_hole_bottom_diameter:
-        raise ValueError("Pin-hole top diameter must exceed bottom diameter.")
+    if params.lock_bolt_clearance_diameter <= 0.0:
+        raise ValueError("Lock-bolt clearance diameter must be greater than 0.")
 
-    if params.pin_bottom_diameter <= 0.0 or params.pin_top_diameter <= 0.0:
-        raise ValueError("Pin diameters must be greater than 0.")
+    if params.lock_head_diameter <= params.lock_bolt_clearance_diameter:
+        raise ValueError("Lock-bolt head diameter must exceed bolt clearance diameter.")
 
-    if params.pin_top_diameter <= params.pin_bottom_diameter:
-        raise ValueError("Pin top diameter must exceed pin bottom diameter.")
+    if params.lock_head_depth <= 0.0:
+        raise ValueError("Lock-bolt head depth must be greater than 0.")
 
-    if params.pin_length <= params.hub_thickness:
-        raise ValueError("Pin length should exceed hub thickness for retention.")
+    if params.lock_nut_flat <= params.lock_bolt_clearance_diameter:
+        raise ValueError("Lock-nut across-flats must exceed bolt clearance diameter.")
 
-    if params.pin_top_diameter >= params.pin_hole_top_diameter:
-        raise ValueError("Pin top diameter must be smaller than hole top diameter.")
+    if params.lock_nut_thickness <= 0.0:
+        raise ValueError("Lock-nut thickness must be greater than 0.")
 
-    if params.pin_bottom_diameter >= params.pin_hole_bottom_diameter:
+    if (params.lock_head_depth + params.lock_nut_thickness) >= params.hub_thickness:
         raise ValueError(
-            "Pin bottom diameter must be smaller than hole bottom diameter."
+            "Hub thickness must exceed combined lock-head and lock-nut pocket depths."
         )
 
     min_hub = math.hypot(params.recess_length, params.recess_width) + (
