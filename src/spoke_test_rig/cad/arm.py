@@ -7,16 +7,12 @@ from spoke_test_rig.cad.params import HubArmParams, validate_params
 
 
 def _male_dovetail(params: HubArmParams) -> cq.Workplane:
-    # Keep the arm-side shoulder no wider than the hub socket mouth.
-    shoulder_w = min(
-        params.dovetail_inner_width,
-        params.dovetail_entry_width,
-        params.arm_width,
-    )
+    tip_w = params.dovetail_inner_width
+    shoulder_w = params.dovetail_entry_width
 
     profile = [
-        (-params.dovetail_length, -params.dovetail_entry_width / 2.0),
-        (-params.dovetail_length, params.dovetail_entry_width / 2.0),
+        (-params.dovetail_length, -tip_w / 2.0),
+        (-params.dovetail_length, tip_w / 2.0),
         (0.0, shoulder_w / 2.0),
         (0.0, -shoulder_w / 2.0),
     ]
@@ -34,11 +30,7 @@ def build_arm(params: HubArmParams) -> cq.Workplane:
     validate_params(params)
 
     arm_body_length = params.arm_length - params.dovetail_length
-    shoulder_w = min(
-        params.dovetail_inner_width,
-        params.dovetail_entry_width,
-        params.arm_width,
-    )
+    shoulder_w = params.dovetail_entry_width
 
     body = cq.Workplane("XY").box(
         arm_body_length,
@@ -66,4 +58,14 @@ def build_arm(params: HubArmParams) -> cq.Workplane:
     hole_cutter = clearance_hole_cutter(
         params.lock_bolt_clearance_diameter, params.arm_thickness + 2.0
     )
-    return arm.cut(hole_cutter.translate((params.arm_lock_bolt_x, 0.0, 0.0)))
+
+    head_bore = (
+        cq.Workplane("XY")
+        .circle(params.lock_head_diameter / 2.0)
+        .extrude(params.lock_head_depth)
+        .translate((0.0, 0.0, (params.arm_thickness / 2.0) - params.lock_head_depth))
+    )
+
+    arm = arm.cut(hole_cutter.translate((params.arm_lock_bolt_x, 0.0, 0.0)))
+    arm = arm.cut(head_bore.translate((params.arm_lock_bolt_x, 0.0, 0.0)))
+    return arm

@@ -8,7 +8,7 @@ Parametric CadQuery models for a rotating hub and detachable LED arms.
 - Bottom 1/4-inch hex drive socket for a rotating shank.
 - Two radial dovetail receivers at 180 degrees in the hub.
 - Separate 9-inch arms with matching male dovetail mounts.
-- Through-bolt lock retention at each arm-hub dovetail with top head counterbore and bottom hex-nut trap.
+- Through-bolt lock retention at each arm-hub dovetail with arm-side head counterbore and hub-side hex-nut trap.
 
 ## Key defaults
 

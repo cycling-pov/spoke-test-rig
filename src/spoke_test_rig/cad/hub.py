@@ -5,7 +5,6 @@ import cadquery as cq
 
 from spoke_test_rig.cad.lock_bolt import (
     clearance_hole_cutter,
-    head_counterbore_cutter,
     nut_trap_cutter,
 )
 from spoke_test_rig.cad.params import HubArmParams, validate_params
@@ -123,8 +122,9 @@ def build_hub(params: HubArmParams) -> cq.Workplane:
         .hole(params.lash_hole_diameter)
     )
 
-    # Opposing female dovetail sockets at 180 degrees.
-    socket = _female_dovetail_cutter(params).translate((radius, 0.0, 0.0))
+    # Opposing female dovetail sockets at 180 degrees, flush with the top face.
+    socket_center_z = (params.hub_thickness - params.dovetail_socket_height) / 2.0
+    socket = _female_dovetail_cutter(params).translate((radius, 0.0, socket_center_z))
     opposite_socket = socket.mirror("YZ")
 
     hub = hub.cut(socket).cut(opposite_socket)
@@ -133,12 +133,10 @@ def build_hub(params: HubArmParams) -> cq.Workplane:
     through_hole = clearance_hole_cutter(
         params.lock_bolt_clearance_diameter, params.hub_thickness + 2.0
     )
-    head_bore = head_counterbore_cutter(params)
     nut_pocket = nut_trap_cutter(params)
 
     for x in (params.hub_lock_bolt_x, -params.hub_lock_bolt_x):
         hub = hub.cut(through_hole.translate((x, 0.0, 0.0)))
-        hub = hub.cut(head_bore.translate((x, 0.0, 0.0)))
         hub = hub.cut(nut_pocket.translate((x, 0.0, 0.0)))
 
     return hub

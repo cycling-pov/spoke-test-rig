@@ -49,14 +49,14 @@ class HubArmParams:
     # Dovetail geometry.
     dovetail_length: float = 14.0
     dovetail_entry_width: float = 10.0
-    dovetail_inner_width: float = 14.0
+    dovetail_inner_width: float = 12.0
     dovetail_socket_entry_offset: float = 0.6
 
     # Metal bolt lock geometry for securing arm-to-hub dovetail joints.
     lock_bolt_from_entry: float = 6.0
     lock_bolt_clearance_diameter: float = 3.4
     lock_head_diameter: float = 6.4
-    lock_head_depth: float = 2.8
+    lock_head_depth: float = 1
     lock_nut_flat: float = 5.8
     lock_nut_thickness: float = 2.8
 
@@ -152,6 +152,22 @@ def validate_params(params: HubArmParams) -> None:
     if params.arm_length <= params.dovetail_length:
         raise ValueError("Arm length must be longer than dovetail length.")
 
+    if params.dovetail_length <= 0.0:
+        raise ValueError("Dovetail length must be greater than 0.")
+
+    if params.dovetail_entry_width <= 0.0 or params.dovetail_inner_width <= 0.0:
+        raise ValueError("Dovetail widths must be greater than 0.")
+
+    if params.dovetail_entry_width > params.dovetail_inner_width:
+        raise ValueError(
+            "Dovetail entry width must be less than or equal to dovetail inner width."
+        )
+
+    if params.dovetail_inner_width > params.arm_width:
+        raise ValueError(
+            "Dovetail inner width must be less than or equal to arm width."
+        )
+
     if not (0.0 < params.lock_bolt_from_entry < params.dovetail_length):
         raise ValueError(
             "Lock-bolt location must be within the dovetail engagement length."
@@ -165,6 +181,9 @@ def validate_params(params: HubArmParams) -> None:
 
     if params.lock_head_depth <= 0.0:
         raise ValueError("Lock-bolt head depth must be greater than 0.")
+
+    if params.lock_head_depth >= params.arm_thickness:
+        raise ValueError("Lock-bolt head depth must be less than arm thickness.")
 
     if params.lock_nut_flat <= params.lock_bolt_clearance_diameter:
         raise ValueError("Lock-nut across-flats must exceed bolt clearance diameter.")
