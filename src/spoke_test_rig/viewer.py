@@ -2,53 +2,18 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
-import shutil
-import subprocess
-import tempfile
-import textwrap
 
+from ocp_vscode import set_port, show
 
-def _build_preview_script(model: str) -> str:
-    show_hub = model in {"hub", "all"}
-    show_arm = model in {"arm", "all"}
-    show_assembly = model in {"assembly", "all"}
-
-    return (
-        textwrap.dedent(
-            f"""
-        from spoke_test_rig.cad.arm import build_arm
-        from spoke_test_rig.cad.assembly import build_assembly
-        from spoke_test_rig.cad.hub import build_hub
-        from spoke_test_rig.cad.params import HubArmParams
-
-        params = HubArmParams()
-
-        if {show_hub}:
-            show_object(build_hub(params), name="hub")
-
-        if {show_arm}:
-            show_object(build_arm(params), name="arm")
-
-        if {show_assembly}:
-            assembly = build_assembly(params)
-            show_object(assembly.toCompound(), name="assembly")
-        """
-        ).strip()
-        + "\n"
-    )
-
-
-def _find_viewer_command() -> str | None:
-    for command in ("cq-editor", "cq-editor.exe"):
-        if shutil.which(command):
-            return command
-    return None
+from spoke_test_rig.cad.arm import build_arm
+from spoke_test_rig.cad.assembly import build_assembly
+from spoke_test_rig.cad.hub import build_hub
+from spoke_test_rig.cad.params import HubArmParams
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Open CadQuery models in CQ-editor for interactive inspection."
+        description="Open build123d models in the OCP viewer for interactive inspection."
     )
     parser.add_argument(
         "--model",
@@ -58,32 +23,28 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    command = _find_viewer_command()
-    if command is None:
-        raise SystemExit(
-            "Could not find `cq-editor` on PATH. Run `uv sync` to install project dependencies, then rerun `uv run view`."
-        )
+    params = HubArmParams()
+    shapes = []
+    names = []
 
-    package_root = Path(__file__).resolve().parents[2]
-    src_root = package_root / "src"
+    if args.model in {"hub", "all"}:
+        shapes.append(build_hub(params))
+        names.append("hub")
 
-    env = os.environ.copy()
-    existing_path = env.get("PYTHONPATH")
-    env["PYTHONPATH"] = (
-        str(src_root) if not existing_path else f"{src_root}{os.pathsep}{existing_path}"
-    )
+    if args.model in {"arm", "all"}:
+        shapes.append(build_arm(params))
+        names.append("arm")
 
-    script_text = _build_preview_script(args.model)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
-        temp_file.write(script_text)
-        script_path = Path(temp_file.name)
+    if args.model in {"assembly", "all"}:
+        shapes.append(build_assembly(params))
+        names.append("assembly")
 
-    try:
-        completed = subprocess.run([command, str(script_path)], env=env, check=False)
-        if completed.returncode != 0:
-            raise SystemExit(f"CQ-editor exited with code {completed.returncode}.")
-    finally:
-        script_path.unlink(missing_ok=True)
+    if not shapes:
+        raise SystemExit("No models selected to display.")
+
+    port = int(os.environ.get("OCP_VSCODE_PORT", "3939"))
+    set_port(port)
+    show(*shapes, names=names, port=port)
 
 
 if __name__ == "__main__":

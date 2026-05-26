@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
-import cadquery as cq
+from build123d import export_step, export_stl
 
 from spoke_test_rig.cad.arm import build_arm
 from spoke_test_rig.cad.assembly import build_assembly
@@ -10,9 +11,9 @@ from spoke_test_rig.cad.hub import build_hub
 from spoke_test_rig.cad.params import HubArmParams, QUARTER_INCH_MM, validate_params
 
 
-def _bbox_lengths(shape: cq.Workplane) -> tuple[float, float, float]:
-    bb = shape.val().BoundingBox()
-    return bb.xlen, bb.ylen, bb.zlen
+def _bbox_lengths(shape: Any) -> tuple[float, float, float]:
+    bb = shape.bounding_box()
+    return bb.size.X, bb.size.Y, bb.size.Z
 
 
 def main() -> None:
@@ -27,11 +28,11 @@ def main() -> None:
     arm = build_arm(params)
     assembly = build_assembly(params)
 
-    cq.exporters.export(hub, str(export_dir / "hub.step"))
-    cq.exporters.export(hub, str(export_dir / "hub.stl"))
-    cq.exporters.export(arm, str(export_dir / "arm.step"))
-    cq.exporters.export(arm, str(export_dir / "arm.stl"))
-    assembly.save(str(export_dir / "assembly.step"))
+    export_step(hub, str(export_dir / "hub.step"))
+    export_stl(hub, str(export_dir / "hub.stl"))
+    export_step(arm, str(export_dir / "arm.step"))
+    export_stl(arm, str(export_dir / "arm.stl"))
+    export_step(assembly, str(export_dir / "assembly.step"))
 
     arm_x, arm_y, arm_z = _bbox_lengths(arm)
     hub_x, hub_y, hub_z = _bbox_lengths(hub)

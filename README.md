@@ -1,6 +1,6 @@
-# Spoke Test Rig CAD (CadQuery)
+# Spoke Test Rig CAD (build123d)
 
-Parametric CadQuery models for a rotating hub and detachable LED arms.
+Parametric build123d models for a rotating hub and detachable LED arms.
 
 ## What this generates
 
@@ -27,9 +27,9 @@ uv run export
 
 Outputs are written to `exports/`
 
-## Visualize models in CQ-editor
+## Visualize models in OCP viewer
 
-CQ-editor is installed as a project dependency. Launch the viewer script with:
+The project includes the OCP VS Code viewer integration. Launch the viewer script with:
 
 ```bash
 uv run view

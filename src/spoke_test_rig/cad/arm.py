@@ -1,71 +1,94 @@
 from __future__ import annotations
 
-import cadquery as cq
+from build123d import (
+    Align,
+    Box,
+    BuildPart,
+    BuildLine,
+    BuildSketch,
+    Cylinder,
+    Mode,
+    Locations,
+    Plane,
+    Polyline,
+    extrude,
+    make_face,
+)
 
-from spoke_test_rig.cad.lock_bolt import clearance_hole_cutter
 from spoke_test_rig.cad.params import HubArmParams, validate_params
 
 
-def _male_dovetail(params: HubArmParams) -> cq.Workplane:
+def _male_dovetail(params: HubArmParams):
     tip_w = params.dovetail_inner_width
     shoulder_w = params.dovetail_entry_width
 
-    profile = [
-        (-params.dovetail_length, -tip_w / 2.0),
-        (-params.dovetail_length, tip_w / 2.0),
-        (0.0, shoulder_w / 2.0),
-        (0.0, -shoulder_w / 2.0),
-    ]
+    with BuildPart() as dovetail:
+        with BuildSketch(Plane.XY.offset(-params.arm_thickness / 2.0)):
+            with BuildLine():
+                Polyline(
+                    (-params.dovetail_length, -tip_w / 2.0),
+                    (-params.dovetail_length, tip_w / 2.0),
+                    (0.0, shoulder_w / 2.0),
+                    (0.0, -shoulder_w / 2.0),
+                    close=True,
+                )
+            make_face()
+        extrude(amount=params.arm_thickness)
 
-    return (
-        cq.Workplane("XY")
-        .polyline(profile)
-        .close()
-        .extrude(params.arm_thickness)
-        .translate((0.0, 0.0, -params.arm_thickness / 2.0))
-    )
+    part = dovetail.part
+    assert part is not None
+    return part
 
 
-def build_arm(params: HubArmParams) -> cq.Workplane:
+def build_arm(params: HubArmParams):
     validate_params(params)
 
     arm_body_length = params.arm_length - params.dovetail_length
     shoulder_w = params.dovetail_entry_width
 
-    body = cq.Workplane("XY").box(
-        arm_body_length,
-        params.arm_width,
-        params.arm_thickness,
-        centered=(False, True, True),
-    )
-
-    dovetail = _male_dovetail(params)
-
-    # Small shoulder where the arm body meets the dovetail controls insertion depth.
-    stop = (
-        cq.Workplane("XY")
-        .box(
-            1.0,
-            shoulder_w,
+    with BuildPart() as arm:
+        Box(
+            arm_body_length,
+            params.arm_width,
             params.arm_thickness,
-            centered=(False, True, True),
+            align=(Align.MIN, Align.CENTER, Align.CENTER),
         )
-        .translate((-0.5, 0.0, 0.0))
-    )
 
-    arm = body.union(dovetail).union(stop)
+        with BuildSketch(Plane.XY.offset(-params.arm_thickness / 2.0)):
+            with BuildLine():
+                Polyline(
+                    (-params.dovetail_length, -params.dovetail_inner_width / 2.0),
+                    (-params.dovetail_length, params.dovetail_inner_width / 2.0),
+                    (0.0, params.dovetail_entry_width / 2.0),
+                    (0.0, -params.dovetail_entry_width / 2.0),
+                    close=True,
+                )
+            make_face()
+        extrude(amount=params.arm_thickness)
 
-    hole_cutter = clearance_hole_cutter(
-        params.lock_bolt_clearance_diameter, params.arm_thickness + 2.0
-    )
+        # Small shoulder where the arm body meets the dovetail controls insertion depth.
+        Box(1.0, shoulder_w, params.arm_thickness)
 
-    head_bore = (
-        cq.Workplane("XY")
-        .circle(params.lock_head_diameter / 2.0)
-        .extrude(params.lock_head_depth)
-        .translate((0.0, 0.0, (params.arm_thickness / 2.0) - params.lock_head_depth))
-    )
+        with Locations((params.arm_lock_bolt_x, 0.0, 0.0)):
+            Cylinder(
+                params.lock_bolt_clearance_diameter / 2.0,
+                params.arm_thickness + 2.0,
+                mode=Mode.SUBTRACT,
+            )
 
-    arm = arm.cut(hole_cutter.translate((params.arm_lock_bolt_x, 0.0, 0.0)))
-    arm = arm.cut(head_bore.translate((params.arm_lock_bolt_x, 0.0, 0.0)))
-    return arm
+        with Locations(
+            (
+                params.arm_lock_bolt_x,
+                0.0,
+                (params.arm_thickness / 2.0) - (params.lock_head_depth / 2.0),
+            )
+        ):
+            Cylinder(
+                params.lock_head_diameter / 2.0,
+                params.lock_head_depth,
+                mode=Mode.SUBTRACT,
+            )
+
+    part = arm.part
+    assert part is not None
+    return part
