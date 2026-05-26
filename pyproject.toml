@@ -5,14 +5,16 @@ description = "A test rig for the esp-pov project."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
-dependencies = [
-    "cadquery>=2.7.0",
-    "cq-editor>=0.7.0",
-]
+dependencies = ["cadquery>=2.7.0", "cq-editor>=0.7.0"]
 
 [project.scripts]
 export = "spoke_test_rig.export:main"
 view = "spoke_test_rig.viewer:main"
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'win32' and platform_machine == 'AMD64'",
+]
 
 [build-system]
 requires = ["uv_build"]
