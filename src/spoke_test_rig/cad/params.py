@@ -11,8 +11,8 @@ QUARTER_INCH_MM = 0.25 * INCH_TO_MM
 @dataclass(frozen=True)
 class HubArmParams:
     # Breadboard nominal dimensions.
-    breadboard_length: float = 83.5
-    breadboard_width: float = 55.5
+    breadboard_length: float = 84.5
+    breadboard_width: float = 56.5
     breadboard_height: float = 8.5
 
     # Assembly-fit clearances tuned for PLA/PETG FDM.
