@@ -62,32 +62,16 @@ def build_hub(params: HubArmParams) -> cq.Workplane:
         .cutBlind(-params.recess_depth)
     )
 
-    # Reinforcement boss at the bottom drive interface.
-    boss = (
-        cq.Workplane("XY")
-        .circle(params.drive_reinforcement_boss_diameter / 2.0)
-        .extrude(params.drive_reinforcement_boss_height)
-        .translate(
-            (
-                0.0,
-                0.0,
-                -params.hub_thickness / 2.0 - params.drive_reinforcement_boss_height,
-            )
-        )
-    )
-    hub = hub.union(boss)
-
     # Bottom 1/4-inch hex socket plus lead-in opening.
-    # Cut starts at boss bottom so effective insertion depth increases.
     leadin = (
         cq.Workplane("XY")
         .polygon(6, 2.0 * params.hex_leadin_radius)
-        .extrude(params.drive_leadin_depth + params.drive_reinforcement_boss_height)
+        .extrude(params.drive_leadin_depth)
         .translate(
             (
                 0.0,
                 0.0,
-                -params.hub_thickness / 2.0 - params.drive_reinforcement_boss_height,
+                -params.hub_thickness / 2.0,
             )
         )
     )
@@ -95,14 +79,12 @@ def build_hub(params: HubArmParams) -> cq.Workplane:
     hex_core = (
         cq.Workplane("XY")
         .polygon(6, 2.0 * params.hex_radius)
-        .extrude(params.drive_socket_depth + params.drive_reinforcement_boss_height)
+        .extrude(params.drive_socket_depth)
         .translate(
             (
                 0.0,
                 0.0,
-                -params.hub_thickness / 2.0
-                - params.drive_reinforcement_boss_height
-                + params.drive_leadin_depth,
+                -params.hub_thickness / 2.0 + params.drive_leadin_depth,
             )
         )
     )

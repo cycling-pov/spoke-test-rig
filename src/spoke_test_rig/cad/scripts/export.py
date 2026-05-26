@@ -44,7 +44,7 @@ def run() -> None:
         "hub_diameter_y_mm": (hub_y, params.hub_outer_diameter),
         "hub_total_height_mm": (
             hub_z,
-            params.hub_thickness + params.drive_reinforcement_boss_height,
+            params.hub_thickness,
         ),
         "drive_hex_af_mm": (params.drive_hex_af, QUARTER_INCH_MM),
     }
@@ -60,10 +60,9 @@ def run() -> None:
         "",
         "# Key Fit Targets",
         f"- Breadboard recess (LxW x D): {params.recess_length:.2f} x {params.recess_width:.2f} x {params.recess_depth:.2f} mm",
-        f"- Solid floor between recess and hex socket: {params.hub_thickness - params.recess_depth - params.drive_reinforcement_boss_height - params.drive_leadin_depth - params.drive_socket_depth:.2f} mm",
+        f"- Solid floor between recess and hex socket: {params.hub_thickness - params.recess_depth - params.drive_leadin_depth - params.drive_socket_depth:.2f} mm",
         f"- Bottom hex socket AF: {params.drive_hex_af:.2f} mm (1/4 in)",
-        f"- Drive socket insertion depth (effective): {params.drive_socket_depth + params.drive_reinforcement_boss_height:.2f} mm",
-        f"- Drive reinforcement boss (D x H): {params.drive_reinforcement_boss_diameter:.2f} x {params.drive_reinforcement_boss_height:.2f} mm",
+        f"- Drive socket insertion depth (effective): {params.drive_socket_depth:.2f} mm",
         f"- Lash holes: {params.lash_hole_count}x {params.lash_hole_diameter:.2f} mm at radius {params.lash_hole_radius:.2f} mm",
         f"- Lash hole rotation: {params.lash_hole_rotation_deg:.2f} deg",
         "- Dovetail placement: sockets centered at 0 and 180 degrees",

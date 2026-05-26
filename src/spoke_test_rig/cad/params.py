@@ -23,7 +23,7 @@ class HubArmParams:
     dovetail_z_clearance: float = 0.2
 
     # Hub geometry.
-    hub_thickness: float = 25.0
+    hub_thickness: float = 21.1
     hub_outer_diameter: float = 130.0
     hub_wall_margin: float = 10.0
 
@@ -32,8 +32,6 @@ class HubArmParams:
     drive_socket_depth: float = 8.0
     drive_leadin_depth: float = 1.2
     drive_leadin_delta_af: float = 0.8
-    drive_reinforcement_boss_diameter: float = 24.0
-    drive_reinforcement_boss_height: float = 3.0
 
     # Battery lashing holes near hub perimeter.
     lash_hole_count: int = 4
@@ -116,7 +114,6 @@ def validate_params(params: HubArmParams) -> None:
     min_hub_thickness = (
         params.recess_depth
         + params.recess_floor_thickness
-        + params.drive_reinforcement_boss_height
         + params.drive_leadin_depth
         + params.drive_socket_depth
     )
@@ -128,12 +125,6 @@ def validate_params(params: HubArmParams) -> None:
 
     if params.drive_socket_depth >= params.hub_thickness:
         raise ValueError("Drive socket depth must be less than hub thickness.")
-
-    if params.drive_reinforcement_boss_height <= 0.0:
-        raise ValueError("Drive reinforcement boss height must be greater than 0.")
-
-    if params.drive_reinforcement_boss_diameter <= params.drive_hex_af:
-        raise ValueError("Drive reinforcement boss diameter must exceed hex socket AF.")
 
     if params.lash_hole_diameter <= 0.0:
         raise ValueError("Lash hole diameter must be greater than 0.")
