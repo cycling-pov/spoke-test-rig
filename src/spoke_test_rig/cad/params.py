@@ -19,8 +19,8 @@ class HubArmParams:
     recess_xy_clearance: float = 0.5
     recess_z_clearance: float = 0.4
     recess_floor_thickness: float = 3.0
-    dovetail_xy_clearance: float = 0.25
-    dovetail_z_clearance: float = 0.2
+    dovetail_xy_clearance: float = 0.1
+    dovetail_z_clearance: float = 0.08
 
     # Hub geometry.
     hub_thickness: float = 21.1
