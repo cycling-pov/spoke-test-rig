@@ -26,8 +26,9 @@ class HubArmParams:
     battery_holder_mount_pitch_x: float = 55.5
     battery_holder_mount_pitch_y: float = 21.40
     battery_holder_mount_hole_diameter: float = 2.8
-    battery_holder_mount_hole_depth: float = 8.0
     battery_holder_center_offset_y: float = -26.0
+    battery_holder_nut_flat: float = 5.8
+    battery_holder_nut_depth: float = 2.8
 
     # Assembly-fit clearances tuned for PLA/PETG FDM.
     recess_xy_clearance: float = 0.5
@@ -38,7 +39,7 @@ class HubArmParams:
 
     # Hub geometry.
     hub_thickness: float = 21.1
-    hub_outer_diameter: float = 130.0
+    hub_outer_diameter: float = 100.0
     hub_wall_margin: float = 10.0
 
     # Bottom drive socket geometry.
@@ -103,6 +104,10 @@ class HubArmParams:
     @property
     def battery_holder_center_y(self) -> float:
         return self.battery_holder_center_offset_y
+
+    @property
+    def battery_holder_nut_vertex_diameter(self) -> float:
+        return (2.0 * self.battery_holder_nut_flat) / math.sqrt(3.0)
 
     @property
     def dovetail_socket_height(self) -> float:
@@ -186,9 +191,6 @@ def validate_params(params: HubArmParams) -> None:
     if params.battery_holder_mount_hole_diameter <= 0.0:
         raise ValueError("Battery holder hole diameter must be greater than 0.")
 
-    if params.battery_holder_mount_hole_depth <= 0.0:
-        raise ValueError("Battery holder hole depth must be greater than 0.")
-
     if params.battery_holder_mount_pitch_x >= params.battery_holder_length:
         raise ValueError(
             "Battery holder hole pitch in X must be less than battery holder length."
@@ -199,11 +201,17 @@ def validate_params(params: HubArmParams) -> None:
             "Battery holder hole pitch in Y must be less than battery holder width."
         )
 
-    if params.battery_holder_mount_hole_depth >= params.hub_thickness:
-        raise ValueError("Battery holder hole depth must be less than hub thickness.")
-
     if not math.isfinite(params.battery_holder_center_offset_y):
         raise ValueError("Battery holder center offset must be finite.")
+
+    if params.battery_holder_nut_flat <= params.battery_holder_mount_hole_diameter:
+        raise ValueError("Battery holder nut flat must exceed the screw hole diameter.")
+
+    if params.battery_holder_nut_depth <= 0.0:
+        raise ValueError("Battery holder nut depth must be greater than 0.")
+
+    if params.battery_holder_nut_depth >= params.hub_thickness:
+        raise ValueError("Battery holder nut depth must be less than hub thickness.")
 
     min_hub_thickness = (
         params.recess_depth

@@ -80,21 +80,21 @@ def build_hub(params: HubArmParams):
 
         # Dual battery holder pilot holes on the backside.
         with Locations(
-            [
-                (
-                    x,
-                    y,
-                    (-params.hub_thickness / 2.0)
-                    + (params.battery_holder_mount_hole_depth / 2.0),
-                )
-                for x, y in _battery_holder_mount_points(params)
-            ]
+            _battery_holder_mount_points(params)
         ):
             Cylinder(
                 params.battery_holder_mount_hole_diameter / 2.0,
-                params.battery_holder_mount_hole_depth,
+                params.hub_thickness + 2.0,
                 mode=Mode.SUBTRACT,
             )
+
+        # Hex nut recess on the top side for the battery-holder screws.
+        with BuildSketch(
+            Plane.XY.offset((params.hub_thickness / 2.0) - params.battery_holder_nut_depth)
+        ):
+            with Locations(_battery_holder_mount_points(params)):
+                RegularPolygon(params.battery_holder_nut_vertex_diameter / 2.0, 6)
+        extrude(amount=params.battery_holder_nut_depth, mode=Mode.SUBTRACT)
 
         # Bottom 1/4-inch hex socket plus lead-in opening.
         with BuildSketch(Plane.XY.offset(-params.hub_thickness / 2.0)):
