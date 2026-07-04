@@ -60,8 +60,9 @@ def run() -> None:
     report_lines += [
         "",
         "# Key Fit Targets",
-        f"- Breadboard recess (LxW x D): {params.recess_length:.2f} x {params.recess_width:.2f} x {params.recess_depth:.2f} mm",
-        f"- Solid floor between recess and hex socket: {params.hub_thickness - params.recess_depth - params.drive_leadin_depth - params.drive_socket_depth:.2f} mm",
+        f"- PCB recess / keep-out (LxW x D): {params.recess_length:.2f} x {params.recess_width:.2f} x {params.recess_depth:.2f} mm",
+        f"- PCB standoffs: {params.pcb_standoff_diameter:.2f} mm dia x {params.pcb_standoff_height:.2f} mm tall at {params.pcb_mount_hole_pitch_x:.2f} x {params.pcb_mount_hole_pitch_y:.2f} mm pitch",
+        f"- Battery holder backside mount: {params.battery_holder_length:.2f} x {params.battery_holder_width:.2f} mm holder, center offset Y {params.battery_holder_center_y:.2f} mm, {params.battery_holder_mount_pitch_x:.2f} x {params.battery_holder_mount_pitch_y:.2f} mm hole pitch, {params.battery_holder_mount_hole_diameter:.2f} mm pilot holes",
         f"- Bottom hex socket AF: {params.drive_hex_af:.2f} mm (1/4 in)",
         f"- Drive socket insertion depth (effective): {params.drive_socket_depth:.2f} mm",
         f"- Lash holes: {params.lash_hole_count}x {params.lash_hole_diameter:.2f} mm at radius {params.lash_hole_radius:.2f} mm",

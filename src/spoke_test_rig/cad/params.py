@@ -10,10 +10,24 @@ QUARTER_INCH_MM = 0.25 * INCH_TO_MM
 
 @dataclass(frozen=True)
 class HubArmParams:
-    # Breadboard nominal dimensions.
-    breadboard_length: float = 83.5
-    breadboard_width: float = 55.5
-    breadboard_height: float = 8.5
+    # PCB nominal dimensions.
+    pcb_length: float = 56.0
+    pcb_width: float = 47.0
+    pcb_thickness: float = 1.6
+    pcb_mount_hole_pitch_x: float = 42.0
+    pcb_mount_hole_pitch_y: float = 42.0
+    pcb_mount_hole_diameter: float = 2.2
+    pcb_standoff_diameter: float = 2.0
+    pcb_standoff_height: float = 2.5
+
+    # Dual battery holder backside mount.
+    battery_holder_length: float = 78.0
+    battery_holder_width: float = 42.0
+    battery_holder_mount_pitch_x: float = 55.5
+    battery_holder_mount_pitch_y: float = 21.40
+    battery_holder_mount_hole_diameter: float = 2.8
+    battery_holder_mount_hole_depth: float = 8.0
+    battery_holder_center_offset_y: float = -26.0
 
     # Assembly-fit clearances tuned for PLA/PETG FDM.
     recess_xy_clearance: float = 0.5
@@ -60,15 +74,35 @@ class HubArmParams:
 
     @property
     def recess_length(self) -> float:
-        return self.breadboard_length + (2.0 * self.recess_xy_clearance)
+        return self.pcb_length + (2.0 * self.recess_xy_clearance)
 
     @property
     def recess_width(self) -> float:
-        return self.breadboard_width + (2.0 * self.recess_xy_clearance)
+        return self.pcb_width + (2.0 * self.recess_xy_clearance)
 
     @property
     def recess_depth(self) -> float:
-        return self.breadboard_height + self.recess_z_clearance
+        return self.pcb_thickness + self.recess_z_clearance
+
+    @property
+    def pcb_hole_offset_x(self) -> float:
+        return self.pcb_mount_hole_pitch_x / 2.0
+
+    @property
+    def pcb_hole_offset_y(self) -> float:
+        return self.pcb_mount_hole_pitch_y / 2.0
+
+    @property
+    def battery_holder_hole_offset_x(self) -> float:
+        return self.battery_holder_mount_pitch_x / 2.0
+
+    @property
+    def battery_holder_hole_offset_y(self) -> float:
+        return self.battery_holder_mount_pitch_y / 2.0
+
+    @property
+    def battery_holder_center_y(self) -> float:
+        return self.battery_holder_center_offset_y
 
     @property
     def dovetail_socket_height(self) -> float:
@@ -109,7 +143,67 @@ class HubArmParams:
 
 def validate_params(params: HubArmParams) -> None:
     if params.recess_depth >= params.hub_thickness:
-        raise ValueError("Breadboard recess depth must be less than hub thickness.")
+        raise ValueError("PCB recess depth must be less than hub thickness.")
+
+    if params.pcb_length <= 0.0 or params.pcb_width <= 0.0:
+        raise ValueError("PCB dimensions must be greater than 0.")
+
+    if params.pcb_thickness <= 0.0:
+        raise ValueError("PCB thickness must be greater than 0.")
+
+    if params.pcb_mount_hole_pitch_x <= 0.0 or params.pcb_mount_hole_pitch_y <= 0.0:
+        raise ValueError("PCB hole pitch must be greater than 0.")
+
+    if params.pcb_mount_hole_diameter <= 0.0:
+        raise ValueError("PCB mounting-hole diameter must be greater than 0.")
+
+    if params.pcb_standoff_diameter <= 0.0:
+        raise ValueError("PCB standoff diameter must be greater than 0.")
+
+    if params.pcb_standoff_height <= 0.0:
+        raise ValueError("PCB standoff height must be greater than 0.")
+
+    if params.pcb_standoff_diameter >= params.pcb_mount_hole_diameter:
+        raise ValueError(
+            "PCB standoff diameter must be smaller than the hole diameter."
+        )
+
+    if params.pcb_mount_hole_pitch_x >= params.pcb_length:
+        raise ValueError("PCB hole pitch in X must be less than PCB length.")
+
+    if params.pcb_mount_hole_pitch_y >= params.pcb_width:
+        raise ValueError("PCB hole pitch in Y must be less than PCB width.")
+
+    if params.battery_holder_length <= 0.0 or params.battery_holder_width <= 0.0:
+        raise ValueError("Battery holder dimensions must be greater than 0.")
+
+    if (
+        params.battery_holder_mount_pitch_x <= 0.0
+        or params.battery_holder_mount_pitch_y <= 0.0
+    ):
+        raise ValueError("Battery holder hole pitch must be greater than 0.")
+
+    if params.battery_holder_mount_hole_diameter <= 0.0:
+        raise ValueError("Battery holder hole diameter must be greater than 0.")
+
+    if params.battery_holder_mount_hole_depth <= 0.0:
+        raise ValueError("Battery holder hole depth must be greater than 0.")
+
+    if params.battery_holder_mount_pitch_x >= params.battery_holder_length:
+        raise ValueError(
+            "Battery holder hole pitch in X must be less than battery holder length."
+        )
+
+    if params.battery_holder_mount_pitch_y >= params.battery_holder_width:
+        raise ValueError(
+            "Battery holder hole pitch in Y must be less than battery holder width."
+        )
+
+    if params.battery_holder_mount_hole_depth >= params.hub_thickness:
+        raise ValueError("Battery holder hole depth must be less than hub thickness.")
+
+    if not math.isfinite(params.battery_holder_center_offset_y):
+        raise ValueError("Battery holder center offset must be finite.")
 
     min_hub_thickness = (
         params.recess_depth
@@ -120,7 +214,7 @@ def validate_params(params: HubArmParams) -> None:
     if params.hub_thickness < min_hub_thickness:
         raise ValueError(
             "Hub thickness must leave the requested solid floor between the "
-            "breadboard recess and the hex drive socket."
+            "PCB keep-out and the hex drive socket."
         )
 
     if params.drive_socket_depth >= params.hub_thickness:
@@ -193,4 +287,25 @@ def validate_params(params: HubArmParams) -> None:
     if params.hub_outer_diameter < min_hub:
         raise ValueError(
             f"Hub diameter {params.hub_outer_diameter:.2f} mm is too small. Minimum suggested: {min_hub:.2f} mm."
+        )
+
+    pcb_hole_radius = math.hypot(params.pcb_hole_offset_x, params.pcb_hole_offset_y)
+    if (pcb_hole_radius + (params.pcb_standoff_diameter / 2.0)) > (
+        params.hub_outer_diameter / 2.0
+    ):
+        raise ValueError("PCB standoffs must fit within the hub diameter.")
+
+    battery_holder_hole_radius = math.hypot(
+        params.battery_holder_hole_offset_x, params.battery_holder_hole_offset_y
+    )
+    if (
+        battery_holder_hole_radius + (params.battery_holder_mount_hole_diameter / 2.0)
+    ) > (params.hub_outer_diameter / 2.0):
+        raise ValueError("Battery holder mounts must fit within the hub diameter.")
+
+    if abs(params.battery_holder_center_y) <= (
+        (params.battery_holder_width / 2.0) + params.hex_leadin_radius
+    ):
+        raise ValueError(
+            "Battery holder center offset must clear the hub's hex drive opening."
         )

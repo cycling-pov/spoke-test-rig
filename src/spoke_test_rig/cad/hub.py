@@ -9,11 +9,11 @@ from build123d import (
     Locations,
     Mode,
     Plane,
-    Polyline,
     RegularPolygon,
     Rectangle,
     extrude,
     make_face,
+    Polyline,
 )
 
 from spoke_test_rig.cad.params import HubArmParams, validate_params
@@ -31,6 +31,24 @@ def _lash_hole_points(
     ]
 
 
+def _pcb_standoff_points(params: HubArmParams) -> list[tuple[float, float]]:
+    x = params.pcb_hole_offset_x
+    y = params.pcb_hole_offset_y
+    return [(x, y), (x, -y), (-x, y), (-x, -y)]
+
+
+def _battery_holder_mount_points(params: HubArmParams) -> list[tuple[float, float]]:
+    x = params.battery_holder_hole_offset_x
+    y = params.battery_holder_hole_offset_y
+    center_y = params.battery_holder_center_y
+    return [
+        (x, center_y + y),
+        (x, center_y - y),
+        (-x, center_y + y),
+        (-x, center_y - y),
+    ]
+
+
 def build_hub(params: HubArmParams):
     validate_params(params)
 
@@ -43,12 +61,40 @@ def build_hub(params: HubArmParams):
     with BuildPart() as hub:
         Cylinder(radius, params.hub_thickness)
 
-        # Breadboard recess on top.
-        with BuildSketch(
-            Plane.XY.offset((params.hub_thickness / 2.0) - params.recess_depth)
+        # PCB locating posts on the top face.
+        with Locations(
+            [
+                (
+                    x,
+                    y,
+                    (params.hub_thickness / 2.0) + (params.pcb_standoff_height / 2.0),
+                )
+                for x, y in _pcb_standoff_points(params)
+            ]
         ):
-            Rectangle(params.recess_length, params.recess_width)
-        extrude(amount=params.recess_depth, mode=Mode.SUBTRACT)
+            Cylinder(
+                params.pcb_standoff_diameter / 2.0,
+                params.pcb_standoff_height,
+                mode=Mode.ADD,
+            )
+
+        # Dual battery holder pilot holes on the backside.
+        with Locations(
+            [
+                (
+                    x,
+                    y,
+                    (-params.hub_thickness / 2.0)
+                    + (params.battery_holder_mount_hole_depth / 2.0),
+                )
+                for x, y in _battery_holder_mount_points(params)
+            ]
+        ):
+            Cylinder(
+                params.battery_holder_mount_hole_diameter / 2.0,
+                params.battery_holder_mount_hole_depth,
+                mode=Mode.SUBTRACT,
+            )
 
         # Bottom 1/4-inch hex socket plus lead-in opening.
         with BuildSketch(Plane.XY.offset(-params.hub_thickness / 2.0)):

@@ -4,7 +4,8 @@ Parametric build123d models for a rotating hub and detachable LED arms.
 
 ## What this generates
 
-- Hub with top recess sized for a standard 400-point mini breadboard.
+- Hub with PCB locating posts for a 56 x 47 mm board with 42 mm mounting-hole pitch in both axes.
+- Hub backside pilot holes for a 78 x 42 mm dual battery holder with 55.5 x 21.4 mm M3 hole pitch.
 - Bottom 1/4-inch hex drive socket for a rotating shank.
 - Two radial dovetail receivers at 180 degrees in the hub.
 - Separate 9-inch arms with matching male dovetail mounts.
@@ -12,8 +13,11 @@ Parametric build123d models for a rotating hub and detachable LED arms.
 
 ## Key defaults
 
-- Breadboard nominal: 83.5 x 55.5 x 8.5 mm
-- Recess fit: slip-fit (+0.5 mm XY, +0.4 mm depth)
+- PCB nominal: 56.0 x 47.0 x 1.6 mm
+- PCB mounting pattern: 42.0 x 42.0 mm
+- PCB locating posts: 3.0 mm diameter x 2.5 mm tall
+- Battery holder nominal: 78.0 x 42.0 mm
+- Battery holder mounting pattern: 55.5 x 21.4 mm
 - Hub thickness: 25 mm
 - Arms: 228.6 mm long (9 in), 12 x 4 mm section
 - Dovetail: radial slide-in with M3-class through-bolt retention
@@ -45,4 +49,4 @@ uv run view --model assembly
 
 ## Tune dimensions
 
-Edit `src/spoke_test_rig/cad/params.py` to adjust clearances, hub size, arm dimensions, or dovetail fit.
+Edit `src/spoke_test_rig/cad/params.py` to adjust PCB fit, clearances, hub size, arm dimensions, or dovetail fit.
